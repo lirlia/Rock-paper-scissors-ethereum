@@ -14,14 +14,17 @@ contract Rsp is Base, ERC20 {
 
     event ResultNotification(Results result, uint token);
 
+    function _random(uint mod) internal view returns(uint){
+        return uint(keccak256(abi.encodePacked(block.timestamp, block.difficulty, msg.sender))) % mod;
+    }
+
     // CPU のじゃんけんの手を生成する
-    function _generateHand() private pure returns(Hands) {
-        Hands hand = Hands.Paper; // TODO
-        return hand;
+    function _generateHand() internal view returns(Hands) {
+        return Hands(_random(3));
     }
 
     // じゃんけんの手を比較して判定を行う
-    function _checkResult(Hands player, Hands computer) private pure returns(Results) {
+    function _checkResult(Hands player, Hands computer) internal pure returns(Results) {
         // draw
         if (player == computer) { return Results.Draw; }
 
@@ -42,7 +45,7 @@ contract Rsp is Base, ERC20 {
     }
 
     // 掛け金の2倍の token を払い戻す
-    function _sendRewardToken() private returns(uint) {
+    function _sendRewardToken() internal returns(uint) {
         uint token = msg.value * 2;
         _mint(msg.sender, token);
         return token;
