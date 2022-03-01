@@ -12,7 +12,7 @@ contract Rsp is Base, ERC20 {
 
     constructor() ERC20("Janken", "RSP") {}
 
-    event ResultNotification(Results result, uint token);
+    event ResultNotification(Results result, uint token, Hands cpuHand);
 
     function _random(uint mod) internal view returns(uint){
         return uint(keccak256(abi.encodePacked(block.timestamp, block.difficulty, msg.sender))) % mod;
@@ -56,10 +56,10 @@ contract Rsp is Base, ERC20 {
         require(msg.value > 0, "don't have enough token");
 
         // cpu の手を生成
-        Hands computerHand = _generateHand();
+        Hands cpuHand = _generateHand();
 
         // じゃんけん結果を出力
-        Results result = _checkResult(playerHand, computerHand);
+        Results result = _checkResult(playerHand, cpuHand);
 
         uint token = 0;
         if (result == Results.Win) {
@@ -73,10 +73,10 @@ contract Rsp is Base, ERC20 {
 
         console.log("player hand: '%d / computer hand: '%d' / result: '%d'",
             uint(playerHand),
-            uint(computerHand),
+            uint(cpuHand),
             uint(result)
         );
 
-        emit ResultNotification(result, token);
+        emit ResultNotification(result, token, cpuHand);
     }
 }

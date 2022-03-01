@@ -61,21 +61,15 @@ describe("rsp", function() {
 
       switch (hand) {
         case ROCK:
-          it("rock", async () => {
-            expect(hand).equal(ROCK);
-          })
+          expect(hand).equal(ROCK);
           rock = true;
           break;
         case PAPER:
-          it("rock", async () => {
-            expect(hand).equal(PAPER);
-          })
+          expect(hand).equal(PAPER);
           paper = true;
           break;
         case SCISSORS:
-          it("rock", async () => {
-            expect(hand).equal(SCISSORS);
-          })
+          expect(hand).equal(SCISSORS);
           scissors = true;
           break;
       }
@@ -114,7 +108,7 @@ describe("rsp", function() {
       }
 
       // じゃんけんを行って event から結果を取得する
-      tx = await doGame(ROCK, "0.5");
+      tx = await doGame(ROCK, "1");
       rc = await tx.wait();
       result = (await rc.events.find(x => x.event == "ResultNotification"));
 
@@ -125,9 +119,8 @@ describe("rsp", function() {
 
           // 実際に手持ちが増えているか？
           aftBalance = await rsp.balanceOf(addr1.address);
-          it("when win", async () => {
-            expect(aftBalance.sub(befBalance)).to.equal(convertEth("1.0"));
-          })
+          expect(aftBalance.sub(befBalance)).to.equal(convertEth("2.0"));
+          expect(result.args.cpuHand).to.equal(SCISSORS);
           break;
 
         case LOSE:
@@ -135,9 +128,8 @@ describe("rsp", function() {
 
           // 手持ちが減っているか？
           aftBalance = await rsp.balanceOf(addr1.address);
-          it("when lose", async () => {
-            expect(aftBalance.sub(befBalance)).to.equal(convertEth("0.5"));
-          })
+          expect(aftBalance.sub(befBalance)).to.equal(convertEth("0"));
+          expect(result.args.cpuHand).to.equal(PAPER);
           break;
 
         case DRAW:
@@ -145,19 +137,16 @@ describe("rsp", function() {
 
           // 手持ちが減っているか？
           aftBalance = await rsp.balanceOf(addr1.address);
-          it("when draw", async () => {
-            expect(aftBalance.sub(befBalance)).to.equal(convertEth("0.5"));
-          })
+          expect(aftBalance.sub(befBalance)).to.equal(convertEth("0"));
+          expect(result.args.cpuHand).to.equal(ROCK);
           break;
       }
 
       // スコアのチェック
       score = await rsp.scoreOfOwner(addr1.address);
-      it("should have correct score", async () => {
-        expect(score.winCount).equal(winCount);
-        expect(score.loseCount).equal(loseCount);
-        expect(score.drawCount).equal(drawCount);
-      })
+      expect(score.winCount).equal(winCount);
+      expect(score.loseCount).equal(loseCount);
+      expect(score.drawCount).equal(drawCount);
     }
   })
 });
