@@ -15,7 +15,7 @@ async function main() {
 
   // We get the contract to deploy
   const Rsp = await hre.ethers.getContractFactory("Rsp");
-  const rsp = await Rsp.deploy(ethers.utils.parseUnits("99999", "ether"));
+  const rsp = await Rsp.deploy();
 
   await rsp.deployed();
 

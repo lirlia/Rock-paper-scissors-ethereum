@@ -119,6 +119,7 @@ describe("rsp", function() {
           // 実際に手持ちが増えているか？
           aftBalance = await rsp.balanceOf(addr1.address);
           expect(aftBalance.sub(befBalance)).to.equal(convertEth("2.0"));
+          expect(result.args.playerHand).to.equal(ROCK);
           expect(result.args.cpuHand).to.equal(SCISSORS);
           expect(result.args.score.winCount).to.equal(winCount);
           expect(result.args.score.loseCount).to.equal(loseCount);
@@ -131,6 +132,7 @@ describe("rsp", function() {
           // 手持ちが減っているか？
           aftBalance = await rsp.balanceOf(addr1.address);
           expect(aftBalance.sub(befBalance)).to.equal(convertEth("0"));
+          expect(result.args.playerHand).to.equal(ROCK);
           expect(result.args.cpuHand).to.equal(PAPER);
           expect(result.args.score.winCount).to.equal(winCount);
           expect(result.args.score.loseCount).to.equal(loseCount);
@@ -143,6 +145,7 @@ describe("rsp", function() {
           // 手持ちが減っているか？
           aftBalance = await rsp.balanceOf(addr1.address);
           expect(aftBalance.sub(befBalance)).to.equal(convertEth("0"));
+          expect(result.args.playerHand).to.equal(ROCK);
           expect(result.args.cpuHand).to.equal(ROCK);
           expect(result.args.score.winCount).to.equal(winCount);
           expect(result.args.score.loseCount).to.equal(loseCount);
