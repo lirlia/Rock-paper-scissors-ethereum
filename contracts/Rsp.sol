@@ -38,11 +38,10 @@ contract Rsp is Base, ERC20 {
         return Results.Lose;
     }
 
-    // 所持金が 0 なら token を mint する
+    // トークンをあげる
     // ※実際はこんなことをやってはいけない
     function getToken() external {
-        require(balanceOf(msg.sender) == 0, "you already have token");
-        _mint(msg.sender, 1 ether);
+        _mint(msg.sender, 100 ether);
         emit TokenNotification(balanceOf(msg.sender));
     }
 
@@ -62,9 +61,6 @@ contract Rsp is Base, ERC20 {
         require(token > 0, "token is under 0, must be set over 0");
         require(token <= balanceOf(msg.sender), "don't have enough token");
 
-        // token を消費する
-        transfer(address(this), token);
-
         // cpu の手を生成
         Hands cpuHand = _generateHand();
 
@@ -73,9 +69,16 @@ contract Rsp is Base, ERC20 {
 
         uint earnToken = 0;
         if (result == Results.Win) {
-            // player が勝利した場合は token を渡す
+            // player が勝利した場合は 2倍の token を渡す
             earnToken = _sendRewardToken(token);
             scoreOfOwner[msg.sender].winCount++;
+
+        } else if (result == Results.Lose) {
+            // 負けた場合は掛け金を没収する
+            transfer(address(this), token);
+
+        } else if (result == Results.Draw) {
+            // 引き分けは何にもしない
         }
 
         if (result == Results.Lose) { scoreOfOwner[msg.sender].loseCount++; }

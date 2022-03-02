@@ -81,12 +81,7 @@ describe("rsp", function() {
     // Mint後の保持トークン量が 1 RSP か？
     expect(await rsp.connect(addr1).getToken())
       .to.emit(rsp, "TokenNotification")
-      .withArgs(convertEth("1.0"));
-  })
-
-  it("Should not get token if player have tokens", async () => {
-    await rsp.connect(addr1).getToken();
-    await expect(rsp.connect(addr1).getToken()).to.be.reverted;
+      .withArgs(convertEth("100"));
   })
 
   it("Should earn or lost correct tokens", async () => {
@@ -117,7 +112,7 @@ describe("rsp", function() {
 
           // 実際に手持ちが増えているか？
           aftBalance = await rsp.balanceOf(addr1.address);
-          expect(aftBalance.sub(befBalance)).to.equal(convertEth("1.0"));
+          expect(aftBalance.sub(befBalance)).to.equal(convertEth("2.0"));
           expect(result.args.playerHand).to.equal(ROCK);
           expect(result.args.cpuHand).to.equal(SCISSORS);
           expect(result.args.score.winCount).to.equal(winCount);
@@ -130,7 +125,7 @@ describe("rsp", function() {
 
           // 手持ちが減っているか？
           aftBalance = await rsp.balanceOf(addr1.address);
-          expect(aftBalance.sub(befBalance)).to.equal(convertEth("-1.0"));
+          expect(befBalance.sub(aftBalance)).to.equal(convertEth("1.0"));
           expect(result.args.playerHand).to.equal(ROCK);
           expect(result.args.cpuHand).to.equal(PAPER);
           expect(result.args.score.winCount).to.equal(winCount);
@@ -143,7 +138,7 @@ describe("rsp", function() {
 
           // 手持ちが減っているか？
           aftBalance = await rsp.balanceOf(addr1.address);
-          expect(aftBalance.sub(befBalance)).to.equal(convertEth("-1.0"));
+          expect(aftBalance.sub(befBalance)).to.equal(convertEth("0.0"));
           expect(result.args.playerHand).to.equal(ROCK);
           expect(result.args.cpuHand).to.equal(ROCK);
           expect(result.args.score.winCount).to.equal(winCount);

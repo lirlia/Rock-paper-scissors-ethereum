@@ -13,7 +13,7 @@ await provider.send("eth_requestAccounts", []);
 const signer = provider.getSigner()
 const signerAddress = await signer.getAddress();
 // You can also use an ENS name for the contract address
-const rspAddress = "0x610178dA211FEF7D417bC0e6FeD39F05609AD788";
+const rspAddress = "0xf4B146FbA71F41E0592668ffbF264F1D186b2Ca8";
 
 // The ERC-20 Contract ABI, which is a common contract interface
 // for tokens (this is the Human-Readable ABI format)
@@ -39,12 +39,16 @@ rsp.on("ResultNotification", (result, _, totalToken, playerHand, cpuHand, score)
 })
 
 // トークンGet押下時の処理
-$("#getToken").click(() => {
-  getTokenABI();
+$("#getToken").click(async () => {
+  const tx = await getTokenABI();
+  const rc = await tx.wait();
+  const token = ethers.utils.parseEther($("#myToken").text()).add(rc.events[0].args.value)
+  displayToken(token);
 });
 
 // じゃんけん実行
 $(".rsp").click(async function() {
+  resetMatchResultDisplay();
   let token = $("#bet").val();
 
   if (token === "") {
@@ -68,6 +72,12 @@ async function initialize() {
   displayScore();
 }
 
+function resetMatchResultDisplay() {
+  $("#playerHand").attr('src', "");
+  $("#cpuHand").attr('src', "");
+  $("#result").text("");
+}
+
 function getKeyByValue(object, value) {
   return Object.keys(object).find(key => object[key] === value);
 }
@@ -75,7 +85,7 @@ function getKeyByValue(object, value) {
 // token の保持数を画面に描画する
 function displayToken(token) {
   token = ethers.utils.formatEther(token).toString();
-  $("#myToken").text(`保有トークン数 : ${token} ポイント`);
+  $("#myToken").text(`${token}`);
 }
 
 async function displayScore() {
@@ -90,11 +100,11 @@ function displayMatchResult(playerHand, cpuHand, result) {
 }
 
 async function doGamABI(hand, token) {
-  return await rsp.doGame(hand, {value: ethers.utils.parseEther(token)});
+  return await rsp.doGame(hand, ethers.utils.parseEther(token));
 }
 // 保有している token 数を取得する
 async function balanceOfABI() { return await rsp.balanceOf(signerAddress); }
 // スコアを取得する
 async function getScoreABI() { return await rsp.scoreOfOwner(signerAddress); }
 // token を取得する ABI を実行する
-async function getTokenABI() { await rsp.getToken(); }
+async function getTokenABI() { return await rsp.getToken(); }
