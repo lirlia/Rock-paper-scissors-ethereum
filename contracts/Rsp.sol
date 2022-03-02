@@ -13,7 +13,7 @@ contract Rsp is Base, ERC20 {
     constructor() ERC20("Janken", "RSP") {}
 
     event TokenNotification(uint token);
-    event ResultNotification(Results result, uint token, Hands playerHand, Hands cpuHand, Score score);
+    event ResultNotification(Results result, uint earnToken, uint totalToken, Hands playerHand, Hands cpuHand, Score score);
 
     function _random(uint mod) internal view returns(uint){
         return uint(keccak256(abi.encodePacked(block.timestamp, block.difficulty, msg.sender))) % mod;
@@ -41,22 +41,29 @@ contract Rsp is Base, ERC20 {
     // 所持金が 0 なら token を mint する
     // ※実際はこんなことをやってはいけない
     function getToken() external {
-        // TODO
-        // require(balanceOf(msg.sender) == 0, "you already have token");
+        require(balanceOf(msg.sender) == 0, "you already have token");
         _mint(msg.sender, 1 ether);
         emit TokenNotification(balanceOf(msg.sender));
     }
 
     // 掛け金の2倍の token を払い戻す
-    function _sendRewardToken() internal returns(uint) {
-        uint token = msg.value * 2;
+    function _sendRewardToken(uint token) internal returns(uint) {
+        token = token * 2;
         _mint(msg.sender, token);
         return token;
     }
 
     // じゃんけんを行う
-    function doGame(Hands playerHand) external payable {
-        require(msg.value > 0, "don't have enough token");
+    function doGame(Hands playerHand, uint token) external {
+        console.log("bet: '%d / wallet: '%d'",
+            uint(token),
+            uint(balanceOf(msg.sender))
+        );
+        require(token > 0, "token is under 0, must be set over 0");
+        require(token <= balanceOf(msg.sender), "don't have enough token");
+
+        // token を消費する
+        transfer(address(this), token);
 
         // cpu の手を生成
         Hands cpuHand = _generateHand();
@@ -64,10 +71,10 @@ contract Rsp is Base, ERC20 {
         // じゃんけん結果を出力
         Results result = _checkResult(playerHand, cpuHand);
 
-        uint token = 0;
+        uint earnToken = 0;
         if (result == Results.Win) {
             // player が勝利した場合は token を渡す
-            token = _sendRewardToken();
+            earnToken = _sendRewardToken(token);
             scoreOfOwner[msg.sender].winCount++;
         }
 
@@ -80,7 +87,6 @@ contract Rsp is Base, ERC20 {
             uint(result)
         );
 
-        emit TokenNotification(balanceOf(msg.sender));
-        emit ResultNotification(result, token, playerHand, cpuHand, scoreOfOwner[msg.sender]);
+        emit ResultNotification(result, earnToken, balanceOf(msg.sender), playerHand, cpuHand, scoreOfOwner[msg.sender]);
     }
 }

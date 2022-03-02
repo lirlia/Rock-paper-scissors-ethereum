@@ -14,8 +14,8 @@ let owner, addr1;
 let befBalance, aftBalance, score;
 
 // じゃんけんを実行する関数
-async function doGame(hand, eth) {
-  return await rsp.connect(addr1).doGame(hand , { value: ethers.utils.parseEther(eth) })
+async function doGame(hand, token) {
+  return await rsp.connect(addr1).doGame(hand , ethers.utils.parseEther(token))
 };
 
 function convertEth(eth) {
@@ -78,7 +78,7 @@ describe("rsp", function() {
 
   it("Should get token if player have no token", async () => {
 
-    // Mint後の保持トークン量が 1 ETH か？
+    // Mint後の保持トークン量が 1 RSP か？
     expect(await rsp.connect(addr1).getToken())
       .to.emit(rsp, "TokenNotification")
       .withArgs(convertEth("1.0"));
@@ -110,7 +110,6 @@ describe("rsp", function() {
       tx = await doGame(ROCK, "1");
       rc = await tx.wait();
       result = (await rc.events.find(x => x.event == "ResultNotification"));
-
       switch (result.args.result) {
 
         case WIN:
@@ -118,7 +117,7 @@ describe("rsp", function() {
 
           // 実際に手持ちが増えているか？
           aftBalance = await rsp.balanceOf(addr1.address);
-          expect(aftBalance.sub(befBalance)).to.equal(convertEth("2.0"));
+          expect(aftBalance.sub(befBalance)).to.equal(convertEth("1.0"));
           expect(result.args.playerHand).to.equal(ROCK);
           expect(result.args.cpuHand).to.equal(SCISSORS);
           expect(result.args.score.winCount).to.equal(winCount);
@@ -131,7 +130,7 @@ describe("rsp", function() {
 
           // 手持ちが減っているか？
           aftBalance = await rsp.balanceOf(addr1.address);
-          expect(aftBalance.sub(befBalance)).to.equal(convertEth("0"));
+          expect(aftBalance.sub(befBalance)).to.equal(convertEth("-1.0"));
           expect(result.args.playerHand).to.equal(ROCK);
           expect(result.args.cpuHand).to.equal(PAPER);
           expect(result.args.score.winCount).to.equal(winCount);
@@ -144,7 +143,7 @@ describe("rsp", function() {
 
           // 手持ちが減っているか？
           aftBalance = await rsp.balanceOf(addr1.address);
-          expect(aftBalance.sub(befBalance)).to.equal(convertEth("0"));
+          expect(aftBalance.sub(befBalance)).to.equal(convertEth("-1.0"));
           expect(result.args.playerHand).to.equal(ROCK);
           expect(result.args.cpuHand).to.equal(ROCK);
           expect(result.args.score.winCount).to.equal(winCount);

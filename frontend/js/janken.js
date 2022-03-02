@@ -13,7 +13,7 @@ await provider.send("eth_requestAccounts", []);
 const signer = provider.getSigner()
 const signerAddress = await signer.getAddress();
 // You can also use an ENS name for the contract address
-const rspAddress = "0x68B1D87F95878fE05B998F19b66F4baba5De1aed";
+const rspAddress = "0x610178dA211FEF7D417bC0e6FeD39F05609AD788";
 
 // The ERC-20 Contract ABI, which is a common contract interface
 // for tokens (this is the Human-Readable ABI format)
@@ -25,17 +25,18 @@ const rsp = rspContract.connect(signer);
 const hands = ["rock","paper","scissors"];
 const results = ["勝ち","負け","引き分け"];
 
-// token 量が変動したら実行される
+initialize();
+
+// event でも画面更新する
 rsp.on("TokenNotification", myToken => {
   displayToken(myToken);
 })
 
-rsp.on("ResultNotification", (result, _, playerHand, cpuHand, score) => {
+rsp.on("ResultNotification", (result, _, totalToken, playerHand, cpuHand, score) => {
   displayMatchResult(playerHand, cpuHand, result);
   displayScore(score);
+  displayToken(totalToken);
 })
-
-initialize();
 
 // トークンGet押下時の処理
 $("#getToken").click(() => {
@@ -44,11 +45,20 @@ $("#getToken").click(() => {
 
 // じゃんけん実行
 $(".rsp").click(async function() {
-  const token = $("#bet").val();
+  let token = $("#bet").val();
+
   if (token === "") {
     token = (await balanceOfABI()).div(2);
+    token = ethers.utils.formatEther(token).toString();
   }
-  doGamABI(hands[$(this).attr('id')], token);
+  const playerHand = getKeyByValue(hands, $(this).attr('id'));
+  const tx = await doGamABI(playerHand, token);
+  const r = (await tx.wait()).events[0].args;
+
+  // トランザクションの結果から画面を更新する
+  displayMatchResult(r.playerHand, r.cpuHand, r.result);
+  displayScore(r.score);
+  displayToken(r.totalToken);
 });
 
 // 初期設定
@@ -56,6 +66,10 @@ async function initialize() {
   const myToken = await balanceOfABI();
   displayToken(myToken);
   displayScore();
+}
+
+function getKeyByValue(object, value) {
+  return Object.keys(object).find(key => object[key] === value);
 }
 
 // token の保持数を画面に描画する
@@ -76,7 +90,7 @@ function displayMatchResult(playerHand, cpuHand, result) {
 }
 
 async function doGamABI(hand, token) {
-  await rsp.doGame(hand, {value: ethers.BigNumber.from(token)});
+  return await rsp.doGame(hand, {value: ethers.utils.parseEther(token)});
 }
 // 保有している token 数を取得する
 async function balanceOfABI() { return await rsp.balanceOf(signerAddress); }
