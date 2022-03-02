@@ -12,8 +12,9 @@ await provider.send("eth_requestAccounts", []);
 // For this, you need the account signer...
 const signer = provider.getSigner()
 const signerAddress = await signer.getAddress();
+console.log(signerAddress);
 // You can also use an ENS name for the contract address
-const rspAddress = "0xf4B146FbA71F41E0592668ffbF264F1D186b2Ca8";
+const rspAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 
 // The ERC-20 Contract ABI, which is a common contract interface
 // for tokens (this is the Human-Readable ABI format)
@@ -22,8 +23,8 @@ const rspAddress = "0xf4B146FbA71F41E0592668ffbF264F1D186b2Ca8";
 const rspContract = new ethers.Contract(rspAddress, rspAbi.abi, provider);
 const rsp = rspContract.connect(signer);
 
-const hands = ["rock","paper","scissors"];
-const results = ["勝ち","負け","引き分け"];
+const hands = ["rock", "paper", "scissors"];
+const results = ["勝ち", "負け", "引き分け"];
 
 initialize();
 
@@ -46,23 +47,55 @@ $("#getToken").click(async () => {
   displayToken(token);
 });
 
+// hover 時の処理
+const borderClass="border-primary";
+$(".rsp").hover(
+  function () {
+    $(this).addClass(borderClass);
+  },
+  function () {
+    $(this).removeClass(borderClass);
+  }
+)
+
 // じゃんけん実行
-$(".rsp").click(async function() {
+$(".rsp").click(async function () {
   resetMatchResultDisplay();
+
+  // validation
   let token = $("#bet").val();
+  const balanceTokenBigNum = await balanceOfABI();
+  const balanceToken = ethers.utils.formatEther(balanceTokenBigNum).toString();
 
   if (token === "") {
-    token = (await balanceOfABI()).div(2);
+    token = balanceTokenBigNum.div(2);
     token = ethers.utils.formatEther(token).toString();
+  } else if (token > balanceToken) {
+    window.alert("手持ちを超えるトークンはベットできません");
+    return
   }
-  const playerHand = getKeyByValue(hands, $(this).attr('id'));
-  const tx = await doGamABI(playerHand, token);
-  const r = (await tx.wait()).events[0].args;
 
-  // トランザクションの結果から画面を更新する
-  displayMatchResult(r.playerHand, r.cpuHand, r.result);
-  displayScore(r.score);
-  displayToken(r.totalToken);
+  const playerHand = getKeyByValue(hands, $(this).attr('id'));
+
+  try {
+    const tx = await doGamABI(playerHand, token);
+    const events = (await tx.wait()).events;
+
+    // トランザクションの結果から画面を更新する
+    events.forEach(function (e) {
+      if (e.event === "ResultNotification") {
+        displayMatchResult(
+          e.args.playerHand,
+          e.args.cpuHand,
+          e.args.result);
+        displayScore(e.args.score);
+        displayToken(e.args.totalToken);
+      }
+    })
+  } catch (err) {
+    console.error(err);
+    window.alert("トランザクションの実行に失敗しました");
+  }
 });
 
 // 初期設定
@@ -99,7 +132,9 @@ function displayMatchResult(playerHand, cpuHand, result) {
   $("#result").text(results[result]);
 }
 
+// ゲームを実行する
 async function doGamABI(hand, token) {
+  console.log(hand, token);
   return await rsp.doGame(hand, ethers.utils.parseEther(token));
 }
 // 保有している token 数を取得する

@@ -76,13 +76,11 @@ contract Rsp is Base, ERC20 {
         } else if (result == Results.Lose) {
             // 負けた場合は掛け金を没収する
             transfer(address(this), token);
+            scoreOfOwner[msg.sender].loseCount++;
 
         } else if (result == Results.Draw) {
-            // 引き分けは何にもしない
+            scoreOfOwner[msg.sender].drawCount++;
         }
-
-        if (result == Results.Lose) { scoreOfOwner[msg.sender].loseCount++; }
-        if (result == Results.Draw) { scoreOfOwner[msg.sender].drawCount++; }
 
         console.log("player hand: '%d / computer hand: '%d' / result: '%d'",
             uint(playerHand),
