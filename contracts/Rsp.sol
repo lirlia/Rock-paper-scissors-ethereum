@@ -13,7 +13,7 @@ contract Rsp is Base, ERC20 {
     constructor() ERC20("Janken", "RSP") {}
 
     event TokenNotification(uint token);
-    event ResultNotification(Results result, uint token, Hands cpuHand, Score score);
+    event ResultNotification(Results result, uint token, Hands playerHand, Hands cpuHand, Score score);
 
     function _random(uint mod) internal view returns(uint){
         return uint(keccak256(abi.encodePacked(block.timestamp, block.difficulty, msg.sender))) % mod;
@@ -41,7 +41,8 @@ contract Rsp is Base, ERC20 {
     // 所持金が 0 なら token を mint する
     // ※実際はこんなことをやってはいけない
     function getToken() external {
-        require(balanceOf(msg.sender) == 0, "you already have token");
+        // TODO
+        // require(balanceOf(msg.sender) == 0, "you already have token");
         _mint(msg.sender, 1 ether);
         emit TokenNotification(balanceOf(msg.sender));
     }
@@ -80,6 +81,6 @@ contract Rsp is Base, ERC20 {
         );
 
         emit TokenNotification(balanceOf(msg.sender));
-        emit ResultNotification(result, token, cpuHand, scoreOfOwner[msg.sender]);
+        emit ResultNotification(result, token, playerHand, cpuHand, scoreOfOwner[msg.sender]);
     }
 }
