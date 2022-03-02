@@ -77,17 +77,16 @@ describe("rsp", function() {
   })
 
   it("Should get token if player have no token", async () => {
-    // トークンの Mint
-    await rsp.connect(addr1).getToken();
 
-    // 保持トークン量が 1 ETH か？
-    befBalance = await rsp.balanceOf(addr1.address);
-    expect(befBalance).equal(convertEth("1.0"));
+    // Mint後の保持トークン量が 1 ETH か？
+    expect(await rsp.connect(addr1).getToken())
+      .to.emit(rsp, "TokenNotification")
+      .withArgs(convertEth("1.0"));
   })
 
   it("Should not get token if player have tokens", async () => {
     await rsp.connect(addr1).getToken();
-    expect(rsp.connect(addr1).getToken()).to.be.reverted
+    await expect(rsp.connect(addr1).getToken()).to.be.reverted;
   })
 
   it("Should earn or lost correct tokens", async () => {
@@ -121,6 +120,9 @@ describe("rsp", function() {
           aftBalance = await rsp.balanceOf(addr1.address);
           expect(aftBalance.sub(befBalance)).to.equal(convertEth("2.0"));
           expect(result.args.cpuHand).to.equal(SCISSORS);
+          expect(result.args.score.winCount).to.equal(winCount);
+          expect(result.args.score.loseCount).to.equal(loseCount);
+          expect(result.args.score.drawCount).to.equal(drawCount);
           break;
 
         case LOSE:
@@ -130,6 +132,9 @@ describe("rsp", function() {
           aftBalance = await rsp.balanceOf(addr1.address);
           expect(aftBalance.sub(befBalance)).to.equal(convertEth("0"));
           expect(result.args.cpuHand).to.equal(PAPER);
+          expect(result.args.score.winCount).to.equal(winCount);
+          expect(result.args.score.loseCount).to.equal(loseCount);
+          expect(result.args.score.drawCount).to.equal(drawCount);
           break;
 
         case DRAW:
@@ -139,14 +144,11 @@ describe("rsp", function() {
           aftBalance = await rsp.balanceOf(addr1.address);
           expect(aftBalance.sub(befBalance)).to.equal(convertEth("0"));
           expect(result.args.cpuHand).to.equal(ROCK);
+          expect(result.args.score.winCount).to.equal(winCount);
+          expect(result.args.score.loseCount).to.equal(loseCount);
+          expect(result.args.score.drawCount).to.equal(drawCount);
           break;
       }
-
-      // スコアのチェック
-      score = await rsp.scoreOfOwner(addr1.address);
-      expect(score.winCount).equal(winCount);
-      expect(score.loseCount).equal(loseCount);
-      expect(score.drawCount).equal(drawCount);
     }
   })
 });
