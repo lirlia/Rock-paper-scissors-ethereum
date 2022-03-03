@@ -1,4 +1,4 @@
-import rspAbi from '../artifacts/contracts/Rsp.sol/Rsp.json' assert { type: "json" };
+import rspAbi from '/artifacts/contracts/Rsp.sol/Rsp.json' assert { type: "json" };
 
 // A Web3Provider wraps a standard Web3 provider, which is
 // what MetaMask injects as window.ethereum into each page
