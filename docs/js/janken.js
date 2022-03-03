@@ -12,9 +12,9 @@ await provider.send("eth_requestAccounts", []);
 // For this, you need the account signer...
 const signer = provider.getSigner()
 const signerAddress = await signer.getAddress();
-console.log(signerAddress);
+
 // You can also use an ENS name for the contract address
-const rspAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+const rspAddress = "0xA93fDd5D1E4eaDacC1993c4C0134c6089A192337";
 
 // The ERC-20 Contract ABI, which is a common contract interface
 // for tokens (this is the Human-Readable ABI format)
@@ -62,6 +62,9 @@ $(".rsp").hover(
 $(".rsp").click(async function () {
   resetMatchResultDisplay();
 
+  // loading animation 追加
+  $("#result").addClass("spinner-border fs-3");
+
   // validation
   let token = $("#bet").val();
   const balanceTokenBigNum = await balanceOfABI();
@@ -72,6 +75,7 @@ $(".rsp").click(async function () {
     token = ethers.utils.formatEther(token).toString();
   } else if (token > balanceToken) {
     window.alert("手持ちを超えるトークンはベットできません");
+    resetMatchResultDisplay("通信失敗");
     return
   }
 
@@ -95,6 +99,7 @@ $(".rsp").click(async function () {
   } catch (err) {
     console.error(err);
     window.alert("トランザクションの実行に失敗しました");
+    resetMatchResultDisplay("通信失敗");
   }
 });
 
@@ -105,10 +110,11 @@ async function initialize() {
   displayScore();
 }
 
-function resetMatchResultDisplay() {
+function resetMatchResultDisplay(resultMsg="") {
   $("#playerHand").attr('src', "");
   $("#cpuHand").attr('src', "");
-  $("#result").text("");
+  $("#result").removeClass("spinner-border fs-3");
+  $("#result").text(resultMsg);
 }
 
 function getKeyByValue(object, value) {
@@ -129,12 +135,12 @@ async function displayScore() {
 function displayMatchResult(playerHand, cpuHand, result) {
   $("#playerHand").attr('src', `./img/${hands[playerHand]}.png`);
   $("#cpuHand").attr('src', `./img/${hands[cpuHand]}.png`);
+  $("#result").removeClass("spinner-border fs-3");
   $("#result").text(results[result]);
 }
 
 // ゲームを実行する
 async function doGamABI(hand, token) {
-  console.log(hand, token);
   return await rsp.doGame(hand, ethers.utils.parseEther(token));
 }
 // 保有している token 数を取得する
