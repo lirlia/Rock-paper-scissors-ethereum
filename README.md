@@ -2,7 +2,7 @@
 
 **Demo**
 
-![janken](img/janken.gif)
+![janken](img/demo.gif)
 
 Ropsten テストネットにデプロイしたじゃんけんコントラクトをつかった Dapps です。
 
