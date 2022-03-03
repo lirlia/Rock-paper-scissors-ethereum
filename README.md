@@ -1,5 +1,9 @@
 # じゃんけん on Ethereum
 
+**Demo**
+
+![janken](img/janken.gif)
+
 Ropsten テストネットにデプロイしたじゃんけんコントラクトをつかった Dapps です。
 
 独自のトークンであるRSP(RockScissorsPaper) をベットしてプレイできます。
